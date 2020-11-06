@@ -1,4 +1,4 @@
---Question 1.Increase passmarks value by 10 in Exam table for the Subject DBMS.Then, increase the marks value by 10 in ExamMarks table for the Subject DBMS for all the students whose status is active.Both these statements should be written within a transaction. 
+--Question 1.Increase passmarks value by 10 in Exam table for the Subject Java.Then, increase the marks value by 10 in ExamMarks table for the Subject Java for all the students whose status is active.Both these statements should be written within a transaction. 
 
 BEGIN TRY
 
@@ -9,7 +9,7 @@ BEGIN TRY
 		FROM 
 			Exam e JOIN CourSub cs ON e.CourSubId = cs.CourSubId
 			JOIN Subject sub ON cs.SubjectId = sub.SubjectId
-		WHERE sub.SubjectName = 'DBMS';
+		WHERE sub.SubjectName = 'Java';
 
 		UPDATE ExamMarks
 		SET Marks = Marks + 10
@@ -19,7 +19,7 @@ BEGIN TRY
 			JOIN CourSub cs ON e.CourSubId = cs.CourSubId
 			JOIN Subject sub ON cs.SubjectId = sub.SubjectId
 			JOIN StudentStatus ss ON ss.StatusId = s.StatusId
-		WHERE sub.SubjectName = 'DBMS' AND ss.StatusDesc = 'ACTIVE';
+		WHERE sub.SubjectName = 'Java' AND ss.StatusDesc = 'ACTIVE';
 
 	COMMIT TRANSACTION
 
@@ -33,63 +33,69 @@ END CATCH
 /*
 (1 row affected)
 
-(1 row affected)
+(4 rows affected)
 
+Completion time: 2020-11-05T12:31:22.6202490+05:30
 */
 
 --Question 2.Select the relevant records from both the tables before and after the transaction.
 
---Before transaction:
+--Before:
 
 SELECT ExamId, CourSubId,PassMarks
 FROM Exam
 /*
 ExamId	CourSubId	PassMarks
-1	      	3          35
-2	        4	       40
-3	        5	       35
-4	        6	       40
-5	        7	       35
+1	1	55
+2	2	25
+3	3	4
+4	4	15
+5	5	10
 */
+
 SELECT ExamMarksId,ExamId,StudentId,Marks
 FROM ExamMarks
 /*
 ExamMarksId	ExamId	StudentId	Marks
-1    	     1	      1001	     70
-2	         2	      1002	     62
-3	         3	      1003	     45
-4	         4	      1004	     89
-5	         5	      1005	     75
+1	1	1055	90
+2	2	1040	73
+3	3	1023	10
+4	4	1024	45
+5	5	1025	45
 */
 
---After transaction:
+--After:
 
 SELECT ExamId,CourSubId,PassMarks
 FROM Exam
 /*
 ExamId	CourSubId	PassMarks
-1	        3	      45
-2	     	4         40
-3		    5         35
-4		    6         40
-5		    7         35
+1	1	65
+2	2	35
+3	3	14
+4	4	25
+5	5	20
 */
 SELECT ExamMarksId,ExamId,StudentId,Marks
 FROM ExamMarks
 /*
 ExamMarksId	ExamId	StudentId	Marks
-1	          1	      1001	     80
-2	          2	      1002	     62
-3	          3	      1003	     45
-4	          4	      1004	     89
-5	          5	      1005	     75
+1	1	1055	95
+2	2	1040	78
+3	3	1023	15
+4	4	1024	50
+5	5	1025	50
 */
 
 --Question 3.Open two new scripts and connect. Then, set the isolation level as Read Committed in both the sessions.
 
 SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+GO
 
--- Completed this step for each of the scripts
+/* Commands completed successfully.
+
+Completion time: 2020-11-05T12:00:07.2049516+05:30 */
+
 
 --Question 4.Insert around 80 lacs records in ExamMarks table.
 
@@ -100,26 +106,32 @@ FROM dbo.ExamMarks
 SELECT COUNT(*) FROM dbo.ExamMarks
 
 /* 
-10485760
+5242880
 */
 
---Question 5.In the first session write a transaction (within a try…catch block) to select the name of the student with studentid = 1005, then update marks value in ExamMarks table for all the records and then again, the select statement to retrieve the name of the student with studentid = 5.
+--SESSION 1
 
+--Question 3.Open two new scripts and connect. Then, set the isolation level as Read Committed in both the sessions.
+
+--session 1
+
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+GO
+
+
+/* Question 5.In the first session write a transaction (within a tryÅ¯catch block) to select the name of the student with studentid = 1005, 
+then update marks value in ExamMarks table for all the records and then again, the select statement to retrieve the name of the student with studentid = 5 */
+
+--session 1
 BEGIN TRY
-	BEGIN TRANSACTION
 
-		SELECT Name
-		FROM dbo.Student
-		WHERE StudentId=1005;
+BEGIN TRANSACTION;
+Select StudentName from Student where StudentID=1023
+Update
+ExamMarks set Marks= Marks + 5
+Select StudentName from Student where StudentID=1023
 
-		UPDATE dbo.ExamMarks
-		SET marks = marks + 5;
-
-		SELECT Name
-		FROM dbo.Student
-		WHERE StudentId=1005;
-
-	COMMIT TRANSACTION
+COMMIT TRANSACTION;
 END TRY
 
 BEGIN CATCH
@@ -127,39 +139,53 @@ BEGIN CATCH
 	ROLLBACK TRANSACTION;
 END CATCH
 
-/*
-Pratik
-*/
+--Question 7.Execute the first script and immediately execute the second script. Record the output.
+/* 
 
---Question 6.	In the second session, write a transaction (within a try…catch block) to update the name of the student with studentid = 5.
+--Session 1
+
+Before
+Deep
+
+After
+Soham */
+
+
+
+--SESSION 2
+
+--Question 3.Open two new scripts and connect. Then, set the isolation level as Read Committed in both the sessions.
+
+--Session 2
+
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED
+GO
+
+/* Commands completed successfully.
+
+Completion time: 2020-11-05T12:00:07.2049516+05:30 */
+
+
+--Question 6.	In the second session, write a transaction (within a tryÅ¯catch block) to update the name of the student with studentid = 1023.
+
+--Session 2
 
 BEGIN TRY
-	BEGIN TRANSACTION
 
-		UPDATE dbo.Student
-		SET Name = 'Ankit'
-		WHERE StudentId = 1005
+BEGIN TRANSACTION;
+Update 
+dbo.Student set StudentName= 'Soham' where StudentID=1023
 
-	COMMIT TRANSACTION
+
+COMMIT TRANSACTION;
 END TRY
 
 BEGIN CATCH
 	SELECT 'Rollback'
-	ROLLBACK TRANSACTION
+	ROLLBACK TRANSACTION;
 END CATCH
 
-/*
-Ankit
-*/
+/* 
+(1 row affected)
 
---Question 7.Execute the first script and immediately execute the second script. Record the output.
-
--- Before
-Pratik
-
---After
-Ankit
-
-
-
-
+Completion time: 2020-11-05T13:08:34.7518557+05:30 */
